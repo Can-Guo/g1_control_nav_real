@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-import unitree_sdk2_py as sdk2  # 需 pip 安装或源码编译
+import unitree_sdk2py as sdk2  # 需 pip 安装或源码编译
 
 
 class G1CmdVelControl(Node):
