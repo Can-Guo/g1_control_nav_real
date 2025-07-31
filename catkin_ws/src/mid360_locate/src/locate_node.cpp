@@ -210,7 +210,7 @@ void livox_callback(const livox_ros_driver2::CustomMsg::ConstPtr &msg) {
         double distance2 = pt_i.x * pt_i.x + pt_i.y * pt_i.y;
         
         // if (distance2 < distance2_min_thr || distance2 > distance2_local_map_thr) {
-        if (distance2 < 0.1 || distance2 > 2500.0) { // 可适当放宽
+        if (distance2 < 0.25 || distance2 > 2500.0) { // 可适当放宽
             continue;
         }
         pcl::PointXYZ pt(pt_i.x, -pt_i.y, -pt_i.z);

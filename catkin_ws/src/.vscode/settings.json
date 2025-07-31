@@ -67,5 +67,8 @@
         "typeinfo": "cpp",
         "semaphore": "cpp",
         "valarray": "cpp"
-    }
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python-envs.defaultPackageManager": "ms-python.python:pip",
+    "python-envs.pythonProjects": []
 }

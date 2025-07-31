@@ -1,0 +1,4 @@
+catkin_ws/build/
+echo "*.pcd" >> .gitignore
+echo "*.bin" >> .gitignore
+echo "*.o" >> .gitignore

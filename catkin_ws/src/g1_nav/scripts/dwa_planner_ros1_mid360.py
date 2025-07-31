@@ -43,7 +43,7 @@ class DWAPlanner:
         self.has_goal = False
         self.goal_pose = None
         self.goal_reached = False
-        self.waypoint_distance = 0.1  # 路点到达阈值
+        self.waypoint_distance = 0.5  # 路点到达阈值
         
         # 避障状态
         self.obstacle_detected = False
@@ -56,7 +56,7 @@ class DWAPlanner:
         
         # 参数设置
         self.max_speed = 0.3  # 提高最大速度
-        self.min_speed = 0.15  # 提高最小速度，确保避障时不会停止 0.12
+        self.min_speed = 0.12  # 提高最小速度，确保避障时不会停止 0.12
         self.max_turn = 0.3  # 增加最大转向速度以便更灵活避障0.5——>0.3——>0.7——>0.8——>0.3
         self.preferred_turn_direction = None  # 记录优先转向方向
         self.step_time = 0.1
@@ -566,7 +566,9 @@ class DWAPlanner:
         roll, pitch, yaw = euler_from_quaternion([orient.x, orient.y, orient.z, orient.w])
 
         distance_to_goal = math.hypot(self.goal_x - current_x, self.goal_y - current_y)
-        if distance_to_goal < 0.1:  # 增加目标到达阈值，避免频繁停止
+        # if distance_to_goal < 0.1:  # 增加目标到达阈值，避免频繁停止
+        if distance_to_goal < 0.25:  # 增加目标到达阈值，避免频繁停止
+            # 如果距离目标很近，直接返回最小速度，确保平稳减速
             if not self.goal_reached:
                 self.goal_reached = True
                 rospy.loginfo(f"Goal reached at ({self.goal_x}, {self.goal_y})!")
@@ -853,6 +855,25 @@ class DWAPlanner:
             move_cmd = Twist()
             move_cmd.linear.x = smooth_speed
             move_cmd.angular.z = smooth_turn
+
+
+            # York, 20250731
+            # === 新增调试日志 ===
+            # 计算当前到目标的距离和角度差
+            current_x = self.odom_data.pose.pose.position.x
+            current_y = self.odom_data.pose.pose.position.y
+            orient = self.odom_data.pose.pose.orientation
+            roll, pitch, yaw = euler_from_quaternion([orient.x, orient.y, orient.z, orient.w])
+            if self.goal_x is not None and self.goal_y is not None:
+                dx = self.goal_x - current_x
+                dy = self.goal_y - current_y
+                distance = math.hypot(dx, dy)
+                theta = math.atan2(dy, dx)
+                angle_diff = abs(self.normalize_angle(theta - yaw))
+                rospy.loginfo(f"[DWA CMD] vx={smooth_speed:.2f}, vyaw={smooth_turn:.2f}, angle_diff={angle_diff:.2f}, distance={distance:.2f}")
+            # end of York, 20250731
+
+
             self.cmd_publisher.publish(move_cmd)
             
             # 更新上一次的速度记录

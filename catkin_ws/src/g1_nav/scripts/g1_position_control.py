@@ -73,10 +73,10 @@ class G1PositionControl:
         self.obstacle_avoidance_active = False
         
         # 设置导航参数
-        self.waypoint_distance = rospy.get_param('~waypoint_distance', 0.5)
-        self.goal_tolerance = rospy.get_param('~goal_tolerance', 0.2)
-        self.max_linear_speed = rospy.get_param('~max_linear_speed', 0.8)
-        self.max_angular_speed = rospy.get_param('~max_angular_speed', 0.5)
+        self.waypoint_distance = rospy.get_param('~waypoint_distance', 0.5) # 路点距离阈值
+        self.goal_tolerance = rospy.get_param('~goal_tolerance', 0.4) # 目标容忍距离
+        self.max_linear_speed = rospy.get_param('~max_linear_speed', 0.3)  # 最大线速度
+        self.max_angular_speed = rospy.get_param('~max_angular_speed', 0.3) # 最大角速度
         
         # 存储当前位置、目标位置和路径
         self.current_pose = None
@@ -92,6 +92,13 @@ class G1PositionControl:
         
         # 消息计数器，用于减少日志频率
         self.count = 0
+
+        # York, 20250731
+        # 新增：超时检测相关变量
+        self.target_start_time = None
+        self.target_distance = None
+        self.timeout_triggered = False
+        # York, 20250731
         
         rospy.loginfo("G1导航控制节点已启动，等待路径信息...")
         
@@ -201,14 +208,49 @@ class G1PositionControl:
         waypoint_y = waypoint.pose.position.y
         
         distance = math.sqrt((waypoint_x - robot_x)**2 + (waypoint_y - robot_y)**2)
-        
+
+
+        # York, 20250731
+        # === 新增：每次切换目标点时，记录时间和距离 ===
+        if not hasattr(self, 'last_waypoint_index'):
+            self.last_waypoint_index = -1
+        if self.current_waypoint_index != self.last_waypoint_index:
+            self.target_start_time = rospy.Time.now()
+            self.target_distance = distance
+            self.timeout_triggered = False
+            self.last_waypoint_index = self.current_waypoint_index
+            rospy.loginfo(f"切换到新目标点{self.current_waypoint_index}，距离={distance:.2f}m，计时开始")
+        # York, 20250731
+
+
         # 如果距离当前路点足够近，更新到下一个路点
         if distance < self.waypoint_distance:
             self.current_waypoint_index += 1
             if self.current_waypoint_index < len(self.waypoints):
                 rospy.loginfo(
                     f"到达路点 {self.current_waypoint_index-1}，前往下一路点 {self.current_waypoint_index}")
-                    
+
+
+        # York, 20250731
+    def check_timeout(self, distance):
+        """根据距离和已用时间判断是否超时"""
+        if self.target_start_time is None or self.timeout_triggered:
+            return False
+
+        elapsed = (rospy.Time.now() - self.target_start_time).to_sec()
+        d = self.target_distance if self.target_distance is not None else distance
+
+        if 0 <= d <= 3 and elapsed > 30:
+            return True
+        elif 3 < d <= 10 and elapsed > 60:
+            return True
+        elif 10 < d <= 20 and elapsed > 120:
+            return True
+        elif d > 20 and elapsed > 180:
+            return True
+        return False
+        # York, 20250731
+
     def find_closest_waypoint(self):
         if not self.has_path or not self.current_pose or not self.waypoints:
             return
@@ -319,7 +361,20 @@ class G1PositionControl:
         
         # 计算移动方向和速度
         distance = math.sqrt(dx*dx + dy*dy)
+
+
+        # York, 20250731
+        # 如果没有设置目标开始时间，则初始化
+        # === 新增：超时检测 ===
+        if self.check_timeout(distance):
+            rospy.logwarn(f"到达目标点超时，已停止机器人！距离={distance:.2f}m")
+            cmd_vel = Twist()
+            self.vel_pub.publish(cmd_vel)
+            self.timeout_triggered = True
+            return
+        # York, 20250731
         
+
         # 检查是否到达最终目标
         if not self.has_path and distance <= self.goal_tolerance:
             # 接近最终目标，停止
@@ -351,10 +406,14 @@ class G1PositionControl:
         
         # 计算线速度 - 根据距离和角度差异动态调整
         vx = self.max_linear_speed
-        if abs(angle_diff) > 0.5:
-            vx = self.max_linear_speed * (1.0 - abs(angle_diff) / math.pi)  # 角度偏差大时减速
-        if distance < 0.3:
-            vx = vx * (distance / 0.3)  # 接近目标时减速
+        if abs(angle_diff) > 0.7:
+            vx = 0.0
+            vyaw = self.max_angular_speed * (1 if angle_diff > 0 else -1)
+        else:
+            if abs(angle_diff) > 0.5:
+                vx = self.max_linear_speed * (1.0 - abs(angle_diff) / math.pi)  # 角度偏差大时减速
+            if distance < 0.3:
+                vx = vx * (distance / 0.3)  # 接近目标时减速
             
         # 角速度与偏差成比例，但限制最大值
         vyaw = min(self.max_angular_speed, abs(angle_diff) * 1.0) * (1 if angle_diff > 0 else -1)
@@ -385,4 +444,4 @@ def main():
         pass
 
 if __name__ == '__main__':
-    main() 
+    main()

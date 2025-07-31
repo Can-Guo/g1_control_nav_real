@@ -210,7 +210,8 @@ Visualization Manager:
       Min Color: 0; 0; 0
       Name: PointCloud2
       Position Transformer: XYZ
-      Queue Size: 10
+      ;Queue Size: 10
+      Queue Size: 5
       Selectable: true
       Size (Pixels): 10
       Size (m): 0.10000000149011612
@@ -224,7 +225,8 @@ Visualization Manager:
       Buffer Length: 3
       Class: rviz/Path
       Color: 255; 25; 0
-      Enabled: true
+      ;Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -304,7 +306,8 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
-      Enabled: true
+      ;Enabled: true
+      Enabled: false
       Marker Topic: /dwa_paths
       Name: DWAPaths
       Namespaces:

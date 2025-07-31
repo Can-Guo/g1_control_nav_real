@@ -43,8 +43,9 @@ This launch file configures the complete navigation system including:
     <!-- 启动位置控制节点 -->
     <node name="g1_position_control" pkg="g1_nav" type="g1_position_control.py" output="screen">
         <param name="waypoint_distance" value="0.5"/>
-        <param name="goal_tolerance" value="0.1"/>
-        <param name="max_linear_speed" value="0.3"/> 
+        <param name="goal_tolerance" value="0.4"/>
+        <!-- <param name="max_linear_speed" value="0.5"/>  -->
+        <param name="max_linear_speed" value="0.3"/>  
         <param name="max_angular_speed" value="0.3"/>
     </node>
          
