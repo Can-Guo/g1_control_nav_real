@@ -61,12 +61,22 @@ class DWAPlanner:
         self.preferred_turn_direction = None  # 记录优先转向方向
         self.step_time = 0.1
         self.safety_margin = 0.3
-        self.detection_range = 1.2  # 障碍物检测范围
-        self.min_obstacle_radius = 0.2  # 障碍物最小半径
-        self.max_obstacle_radius = 1.0  # 障碍物最大半径
-        self.min_obstacle_points = 100  # 判定为障碍物的最小点数
-        self.clustering_distance = 0.3  # 聚类距离
-        self.robot_radius = 0.3  # 机器人半径
+
+
+        # York, 20250801
+        # self.detection_range = 1.2  # 障碍物检测范围
+        self.detection_range = 1.2 # 增加障碍物检测范围，避免误判
+        # self.min_obstacle_radius = 0.2  # 障碍物最小半径
+        self.min_obstacle_radius = 0.5  # 增加最小障碍物半径，避免误判
+        # self.max_obstacle_radius = 1.0  # 障碍物最大半径
+        self.max_obstacle_radius = 1.2  # 增加障碍物最大半径
+        # self.min_obstacle_points = 100  # 判定为障碍物的最小点数
+        self.min_obstacle_points = 40  # 减少最小障碍物点数，避免误判
+        # self.clustering_distance = 0.3  # 聚类距离
+        self.clustering_distance = 0.3  # 减少聚类距离，避免误判
+        self.robot_radius = 0.5  # 机器人半径
+        # York, 20250801
+
         
         # 添加调试标志
         self.debug = True

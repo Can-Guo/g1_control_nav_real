@@ -241,12 +241,16 @@ class G1PositionControl:
         d = self.target_distance if self.target_distance is not None else distance
 
         if 0 <= d <= 3 and elapsed > 30:
+            print(f"距离 {d:.2f}m，已用时间 {elapsed:.2f}秒，触发超时")
             return True
         elif 3 < d <= 10 and elapsed > 60:
+            print(f"距离 {d:.2f}m，已用时间 {elapsed:.2f}秒，触发超时")
             return True
         elif 10 < d <= 20 and elapsed > 120:
+            print(f"距离 {d:.2f}m，已用时间 {elapsed:.2f}秒，触发超时")
             return True
         elif d > 20 and elapsed > 180:
+            print(f"距离 {d:.2f}m，已用时间 {elapsed:.2f}秒，触发超时")
             return True
         return False
         # York, 20250731
@@ -373,7 +377,7 @@ class G1PositionControl:
             self.timeout_triggered = True
             return
         # York, 20250731
-        
+
 
         # 检查是否到达最终目标
         if not self.has_path and distance <= self.goal_tolerance:
